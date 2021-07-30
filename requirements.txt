@@ -3,4 +3,4 @@ SQLAlchemy
 matplotlib
 pandas
 pyfiglet
-mysql_connector_repackaged
+mysql-connector-python
