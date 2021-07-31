@@ -204,7 +204,6 @@ def BackToMainMenu():
 
 class Table:
 
-	# need to do the whole alter table commands
 
 	global mydb, current_window, mycursor, table, datab
 	global user_login, passw
@@ -459,7 +458,6 @@ class Table:
 
 def main():
 
-	#only have to debug add a new user and delete a user 
 
 	global current_window,datab
 	global table
