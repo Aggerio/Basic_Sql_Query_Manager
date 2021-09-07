@@ -12,7 +12,7 @@ passwords = ['password']
 databases = []
 table = ''
 datab = ''
-logo = pyfiglet.figlet_format("MYSQL FOR KIDS")
+logo = pyfiglet.figlet_format("SIMPLE MYSQL")
 current_window = 0 
 user_login = ''
 passw = ''
@@ -24,32 +24,35 @@ def login():
 
 	user_login = input("Please enter your username: ")
 
-	if user_login.replace(" ", "") in users:
-		pass
-	else:
-		print("the entered username is not a user please try again!!")
-		login()
+	# if user_login.replace(" ", "") in users:
+	# 	pass
+	# else:
+	# 	print("the entered username is not a user please try again!!")
+	# 	login()
 
 	passw = input("Please input your password: ")
 
 	try:
-		if passw.replace(" ", "") in passwords:
-			mydb = mysql.connector.connect(
-				host="localhost",
-				user=user_login,
-				password=passw,
-				autocommit=True
-			)
-			mycursor = mydb.cursor()
-		elif passw not in passwords:
-			print("Wrong Password please try again")
-			login()
+		mydb = mysql.connector.connect(
+			host = "localhost",
+			user = user_login,
+			password = passw,
+			autocommit = True)
 
-		print("Successfully logged in Mysql ")
+		mycursor = mydb.cursor()
+
+		print("Successfully logged in Mysql!!")
+		# mydb = mysql.connector.connect(
+  #           host="localhost",
+  #           user=user_login,
+  #           password=passw,
+  #           autocommit=True)
+  #       mycursor = mydb.cursor()
+
 	
-	except mysql.connector.errors.ProgrammingError:
+	except Exception as e:
 		print("Wrong Password or username reverting back to main menu")
-	
+		
 
 
 def Show_Main_Menu(cur_window):
@@ -137,10 +140,10 @@ def add_new_user():
 		pass
 
 	else:
-		users.append(new_user)
+		
 
 		pass_new = input("Enter the new password of the user: ")
-		passwords.append(pass_new)
+		
 
 		sql = f"create user '{new_user}'@'localhost' identified by {pass_new};"
 		mycursor.execute()
@@ -153,16 +156,10 @@ def add_new_user():
 def update_password():
 	username = input("Enter your username: ")
 
-	for i in range(len(users)):
-		if users[i] == username:
-			no = i
-		else:
-			print("User not found ")
-			print("Would you like to try again")
+	
 
 	new_pass = input("Enter your new password: ")
-	passwords[i] = new_pass
-
+	
 	sql = f"alter user {username}@localhost identified by {new_pass};"
 	mycursor.execute(sql)
 
@@ -174,16 +171,17 @@ def update_password():
 
 def delete_user():
 	print("The currents users are:- ")
-	for i in range(len(users)):
-		print(f"[{i + 1}] {users[i]}")
+	us = pd.read_sql("select user from mysql.user;", con = mydb)
+
+	for i in range(us['user']):
+	    print(f"[{i+1}] {us['user'][i]}")
+
 
 	del_user = int(input("Enter the index of the user you want to delete: "))
 
-	if del_user > 0 & del_user < len(users):
+	if del_user > 0 & del_user < len(us) + 2:
 
-		users.pop(del_user - 1)
-		passwords.pop(del_user - 1)
-		sql = f"DROP USER {user[del_user - 1]}@localhost;"
+		sql = f"DROP USER {us['user'][del_user - 1]}@localhost;"
 		mycursor.execute(sql)
 		print("user deleted")
 
@@ -204,6 +202,7 @@ def BackToMainMenu():
 
 class Table:
 
+	# need to do the whole alter table commands
 
 	global mydb, current_window, mycursor, table, datab
 	global user_login, passw
@@ -245,32 +244,42 @@ class Table:
 		if index == 1:
 			
 			dtype = ''
-			new_name = input("Enter the name of the new table: ")
+			new_name = input("Enter the name of the new column: ")
 
-			print("Following are the three data types for the table: ")
+			print("Following are the three data types for the column: ")
 
 			print("[1]For integer = int")
 			print("[2]For string = varchar(1000)")
 			print("[3]For date = DATE")
 
-			inp = int(input("Input the datatype of the new table: "))
+			inp = int(input("Input the datatype of the new column: "))
 
 			if inp == 1:
 				dtype = "int(100)"
+				sql = f"alter table {table} add {new_name} {dtype};"
+				mycursor.execute(sql)
+
+				print("New column created ")
 
 			if inp == 2:
 				dtype = "varchar(100)"
+				sql = f"alter table {table} add {new_name} {dtype};"
+				mycursor.execute(sql)
+
+				print("New column created ")
 
 			if inp == 3:
 				dtype = "DATE"
+				sql = f"alter table {table} add {new_name} {dtype};"
+				mycursor.execute(sql)
 
-			else:
-				Table.alter_table(table)
+				print("New column created ")
 
-			sql = f"alter table {table} add {new_name} {dtype};"
-			mycursor.execute(sql)
+			elif (inp != 1) or (inp != 2) or (inp != 3) :
+				print("invalid entry please try again")
+				# Table.alter_table(table)
 
-			print("New table created ")
+			
 
 		elif index == 2:
 
@@ -310,7 +319,7 @@ class Table:
 			for i in range(len(col)):
 				print(f"[{i+1}] {col[i]}")
 
-			mod = int(input("Enter the column you want to modify"))
+			mod = int(input("Enter the column you want to modify: "))
 
 			print("Choose a datatype ")
 
@@ -375,9 +384,10 @@ class Table:
 		
 		for i in range(len(sel_col)):
 			if i < len(sel_col) - 1:
-				st1 = st1 + col[i] + ','
+				st1 = st1 + col[sel_col[i]-1] + ','
 			if i == len(sel_col) -1:
-				st1 = st1 + col[i]
+				st1 = st1 + col[sel_col[i]-1]
+			
 
 		sql = f"select {st1} from {table};"
 		res = pd.read_sql(sql, con = mydb)
@@ -458,6 +468,7 @@ class Table:
 
 def main():
 
+	#only have to debug add a new user and delete a user 
 
 	global current_window,datab
 	global table
